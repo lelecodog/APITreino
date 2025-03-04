@@ -55,6 +55,19 @@ def aula_realizada(request, aula_realizada: AulaRealizadaSchema):
         )
         ac.save()
 
+     # Verificar se o aluno atingiu o número necessário de aulas para a próxima faixa
+    faixa_atual = aluno.get_faixa_display()
+    n = order_belt.get(faixa_atual, 0)
+    total_aulas_proxima_faixa = calcula_lesson_to_upgrade(n)
+    total_aulas_concluidas_faixa = AulasConcluidas.objects.filter(aluno=aluno, faixa_atual=aluno.faixa).count()
+
+    if total_aulas_concluidas_faixa >= total_aulas_proxima_faixa:
+        # Atualizar a faixa do aluno
+        nova_faixa = next((faixa for faixa, ordem in order_belt.items() if ordem == n + 1), None)
+        if nova_faixa:
+            aluno.faixa = nova_faixa[0]  # Atualizar a faixa do aluno (primeira letra da faixa)
+            aluno.save()
+
     return 200, f"Aula marcada como realizada para o aluno {aluno.nome}"
 
 @treino_router.put('/aluno/{aluno_id}', response=AlunoSchema)
@@ -70,3 +83,9 @@ def update_aluno(request, aluno_id: int, aluno_data: AlunoSchema):
             setattr(aluno, attr, value)
     aluno.save()
     return aluno
+
+@treino_router.delete('/aluno/{aluno_id}', response={200: str})
+def delete_aluno(request, aluno_id: int):
+    aluno = Alunos.objects.get(id=aluno_id)
+    aluno.delete()
+    return 200, f"Aluno {aluno.nome} deletado com sucesso"
