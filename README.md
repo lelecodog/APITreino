@@ -67,7 +67,7 @@ APITreino/
 1. Clone o repositório:
 
 ```sh
-git clone https://github.com/seu-usuario/APITreino.git
+git clone https://github.com/lelecodog/APITreino
 cd APITreino
 ```
 
